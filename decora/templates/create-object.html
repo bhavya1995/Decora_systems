@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--================================================================================
+	Item Name: Materialize - Material Design Admin Template
+	Version: 2.1
+	Author: GeeksLabs
+	Author URL: http://www.themeforest.net/user/geekslabs
+================================================================================ -->
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="msapplication-tap-highlight" content="no">
+  <meta name="description" content="Materialize is a Material Design Admin Template,It's modern, responsive and based on Material Design by Google. ">
+  <meta name="keywords" content="materialize, admin template, dashboard template, flat admin template, responsive admin template,">
+  <title>Register Page | Materialize - Material Design Admin Template</title>
+
+  <!-- Favicons-->
+  <link rel="icon" href="{{STATIC_URL}}images/favicon/favicon-32x32.png" sizes="32x32">
+  <!-- Favicons-->
+  <link rel="apple-touch-icon-precomposed" href="{{STATIC_URL}}images/favicon/apple-touch-icon-152x152.png">
+  <!-- For iPhone -->
+  <meta name="msapplication-TileColor" content="#00bcd4">
+  <meta name="msapplication-TileImage" content="{{STATIC_URL}}images/favicon/mstile-144x144.png">
+  <!-- For Windows Phone -->
+
+
+  <!-- CORE CSS-->
+  
+  <link href="{{STATIC_URL}}css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection">
+  <link href="{{STATIC_URL}}css/style.css" type="text/css" rel="stylesheet" media="screen,projection">
+    <!-- Custome CSS-->    
+    <link href="{{STATIC_URL}}css/custom-style.css" type="text/css" rel="stylesheet" media="screen,projection">
+  <link href="{{STATIC_URL}}css/page-center.css" type="text/css" rel="stylesheet" media="screen,projection">
+
+  <!-- INCLUDED PLUGIN CSS ON THIS PAGE -->
+  <link href="{{STATIC_URL}}css/prism.css" type="text/css" rel="stylesheet" media="screen,projection">
+  <link href="{{STATIC_URL}}js/plugins/perfect-scrollbar/perfect-scrollbar.css" type="text/css" rel="stylesheet" media="screen,projection">
+  
+</head>
+
+<body class="cyan">
+  <!-- Start Page Loading -->
+  <div id="loader-wrapper">
+      <div id="loader"></div>        
+      <div class="loader-section section-left"></div>
+      <div class="loader-section section-right"></div>
+  </div>
+  <!-- End Page Loading -->
+
+
+
+  <div id="login-page" class="row">
+    <div class="col s12 z-depth-4 card-panel">
+      <form class="login-form" id="create-object" method="post" action="/admin/create-object" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+          <div class="input-field col s12 center">
+            <h4>Register</h4>
+            <p class="center" id="error-message">{{message}}</p>
+          </div>
+        </div>
+        <div class="row margin">
+            <div>Name</div>
+          <div class="input-field col s12">
+            <i class="mdi-communication-email prefix"></i>
+            <input id="name" type="text" name="objectName" value="{{data.name}}">
+          </div>
+        </div>
+        <input type="text" name="objectId" value="{{data.id}}" hidden>
+        <div class="row margin">
+            <span>Model Id</span>
+          <div class="input-field col s12">
+            <i class="mdi-communication-email prefix"></i>
+            <input id="model-id" type="text" name="modelId" value="{{data.modelId}}">
+          </div>
+        </div>
+        {% if hasThumbnail %}
+        <img src="data:image/*;base64,{{data.image_data}}" height="200px" width="200px">
+        {% endif %}
+        <input type="file" name="thumbnail" value="data:image/*;base64,{{data.image_data}}">
+        <div class="row">
+          <div class="input-field col s12">
+            <input type="submit" class="btn waves-effect waves-light col s12" value="Create Object">
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+
+  <!-- ================================================
+    Scripts
+    ================================================ -->
+
+  <!-- jQuery Library -->
+  <script type="text/javascript" src="{{STATIC_URL}}js/jquery-1.11.2.min.js"></script>
+  <!--materialize js-->
+  <script type="text/javascript" src="{{STATIC_URL}}js/materialize.js"></script>
+  <!--prism-->
+  <script type="text/javascript" src="{{STATIC_URL}}js/prism.js"></script>
+  <!--scrollbar-->
+  <script type="text/javascript" src="{{STATIC_URL}}js/plugins/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+
+  <script type="text/javascript" src="{{STATIC_URL}}js/user-register.js"></script>
+  <!--plugins.js - Some Specific JS codes for Plugin Settings-->
+  <script type="text/javascript" src="{{STATIC_URL}}js/plugins.js"></script>
+
+</body>
+
+</html>
