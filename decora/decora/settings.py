@@ -92,7 +92,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Path where static files are stored
-STATICFILES_DIRS=(os.path.join(BASE_DIR,"static"),)
+STATICFILES_DIRS = [os.path.join(BASE_DIR,"static")]
 
 # URL to access user uploaded images
 MEDIA_URL = "/media/"
@@ -103,3 +103,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "Media")
 AZURE_ACCOUNT_NAME = "decorastage"
 AZURE_ACCOUNT_KEY = "cHua/dhgH5aiAAJxHrNQeEnHBElQuzghCAQlYgqkAWG26glAe7VN+nMIiP/sBTOTXOYvGtJHwJduXTDw0Xw4lw=="
 AZURE_CONTAINER_NAME = "stageds"
+
+DOMAIN_NAME = "127.0.0.1:8000"
+
+SENDGRID_KEY_ID = "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"
+SENDGRID_NAME = "Dscom"
+SENDGRID_SENDFROM = "hello@decorastudio.com"
