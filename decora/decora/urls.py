@@ -17,7 +17,7 @@ from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.conf import settings
 
-from decora.views import home, logout, register, forgotPassword, resetPassword
+from decora.views import home, logout, register, forgotPassword, resetPassword, signupAPI, verifyUserAccount, loginAPI
 
 urlpatterns = [
     # url(r'^admin/', include(admin.site.urls)),
@@ -27,5 +27,8 @@ urlpatterns = [
     url(r'^register$', register),
     url(r'^forgot-password$', forgotPassword),
     url(r'^reset-password$', resetPassword),
+    url(r'^signup-api$', signupAPI),
+    url(r'^verify-user-account$', verifyUserAccount),
+    url(r'^login-api$', loginAPI),
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
 
