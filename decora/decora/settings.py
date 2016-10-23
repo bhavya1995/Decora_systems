@@ -36,6 +36,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'social.apps.django_app.default',
     'admin_panel'
 )
 
@@ -46,6 +47,25 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+   'django.contrib.auth.context_processors.auth',
+   'django.core.context_processors.debug',
+   'django.core.context_processors.i18n',
+   'django.core.context_processors.media',
+   'django.core.context_processors.static',
+   'django.core.context_processors.tz',
+   'django.contrib.messages.context_processors.messages',
+   'social.apps.django_app.context_processors.backends',
+   'social.apps.django_app.context_processors.login_redirect',
+)
+
+AUTHENTICATION_BACKENDS = (
+   'social.backends.facebook.FacebookOAuth2',
+   'social.backends.google.GoogleOAuth2',
+   'social.backends.twitter.TwitterOAuth',
+   'django.contrib.auth.backends.ModelBackend',
 )
 
 ROOT_URLCONF = 'decora.urls'
@@ -109,3 +129,6 @@ DOMAIN_NAME = "127.0.0.1:8000"
 SENDGRID_KEY_ID = "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"
 SENDGRID_NAME = "Dscom"
 SENDGRID_SENDFROM = "hello@decorastudio.com"
+
+SOCIAL_AUTH_FACEBOOK_KEY = '1126886340698897'
+SOCIAL_AUTH_FACEBOOK_SECRET = 'd431722ad37b2d1d6932b66897ada0bf'

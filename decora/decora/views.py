@@ -25,6 +25,10 @@ from bson.objectid import ObjectId
 
 from admin_panel.utility_constants import SUCCESSFUL_LOGIN_MESSAGE, UNAUTHORIZED_LOGIN_MESSAGE, AUTHENTICATION_ERROR_MESSAGE
 
+
+
+from django.shortcuts import render_to_response
+from django.template.context import RequestContext
 # Create your views here.
 def createMongoConnection():
 	client = MongoClient()
@@ -51,13 +55,13 @@ def sendMail(sendTo, sendFrom, subject, body):
 	# client.send(message)
 
 
-def home(request):
-	client = MongoClient()
-	db = client[settings.DATABASE_NAME]
-	organizationCollection = db.organization
-	data = organizationCollection.find()
-	print(dumps(data))
-	return render(request, 'home.html', data)
+# def home(request):
+# 	client = MongoClient()
+# 	db = client[settings.DATABASE_NAME]
+# 	organizationCollection = db.organization
+# 	data = organizationCollection.find()
+# 	print(dumps(data))
+# 	return render(request, 'home.html', data)
 
 def logout(request):
 	auth.logout(request)
@@ -291,3 +295,10 @@ def resetPassword(request):
 				else:
 					message = "Password length is less than 6 characters !"
 					return render(request, "user-reset-password.html?user=" + userId, {"message": message})
+
+def home(request):
+   context = RequestContext(request,
+                           {'request': request,
+                            'user': request.user})
+   return render_to_response('home.html',
+                             context_instance=context)
