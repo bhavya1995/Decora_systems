@@ -25,6 +25,9 @@ from django.core.files.base import ContentFile
 from azure.storage.blob import BlockBlobService, ContentSettings
 
 from random import randint
+from django.template.context import RequestContext
+from django.shortcuts import render_to_response
+
 # Create your views here.
 
 def createMongoConnection():
@@ -38,6 +41,8 @@ def adminHome(request):
 		displayPage = "user-profile-page.html"
 	else:
 		displayPage = "user-login.html"
+		context = RequestContext(request, {'request': request, 'user': request.user})
+		return render_to_response(displayPage, context_instance=context)
 
 	return render(request, displayPage)
 
@@ -94,13 +99,22 @@ def getImageFromBlobAndPopulateInObjectData(objectData):
 			pass
 	return objectData
 
-
-def viewObjects(request):
+def viewObjectsHelper():
 	db = createMongoConnection()
 	objectCollection = db.objects
 	objectData = loads(dumps(objectCollection.find()))
+	return objectData
+
+def viewObjects(request):
+	objectData = viewObjectsHelper()
 	objectData = getImageFromBlobAndPopulateInObjectData(objectData)
 	return render(request, 'view-objects.html', {"objectData": objectData})
+
+def viewObjectsAPI(request):
+	objectData = viewObjectsHelper()
+	for o in objectData:
+		o["_id"] = str(o["_id"])
+	return HttpResponse(json.dumps({"objectData": objectData}), content_type = "application/json")
 
 def updateObjectThumbnail(thumbnail, db, objectId):
 	objectCollection = db['objects']
@@ -234,8 +248,8 @@ def deleteObject(request):
 	previousThumbnailName = objectCollection.find(
 		{"_id": ObjectId(objectId)}
 	)[0]["thumbnail"]
-	print("previous" + previousThumbnailName)
 	block_blob_service = createAzureBlobService()
 	block_blob_service.delete_blob(settings.AZURE_CONTAINER_NAME, previousThumbnailName)
 	objectCollection.remove({"_id": ObjectId(objectId)})
+	
 	return HttpResponseRedirect("/admin/view-objects")

@@ -30,6 +30,14 @@ from admin_panel.utility_constants import SUCCESSFUL_LOGIN_MESSAGE, UNAUTHORIZED
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 # Create your views here.
+
+def home(request):
+   context = RequestContext(request,
+                           {'request': request,
+                            'user': request.user})
+   return render_to_response('home.html',
+                             context_instance=context)
+
 def createMongoConnection():
 	client = MongoClient()
 	db = client[settings.DATABASE_NAME]
@@ -43,25 +51,6 @@ def sendMail(sendTo, sendFrom, subject, body):
 	content = Content("text/plain", body)
 	mail = Mail(from_email, subject, to_email, content)
 	response = sg.client.mail.send.post(request_body=mail.get())
-
-	# client = sendgrid.SendGridClient(settings.SENDGRID_KEY_ID)
-	# message = sendgrid.Mail()
-
-	# message.add_to(sendTo)
-	# message.set_from(sendFrom)
-	# message.set_subject(subject)
-	# message.set_html(body)
-
-	# client.send(message)
-
-
-# def home(request):
-# 	client = MongoClient()
-# 	db = client[settings.DATABASE_NAME]
-# 	organizationCollection = db.organization
-# 	data = organizationCollection.find()
-# 	print(dumps(data))
-# 	return render(request, 'home.html', data)
 
 def logout(request):
 	auth.logout(request)
@@ -86,39 +75,6 @@ def updateUserAvatar(avatar, db, email):
 		upsert = False
 	)
 
-def register(request):
-	if (request.method == "GET"):
-		return render(request, "user-register.html")
-	elif (request.method == "POST"):
-		firstName = request.POST.get('firstName')
-		lastName = request.POST.get('lastName')
-		email = request.POST.get('email')
-		password = request.POST.get('password')
-
-		if (len(firstName) != 0 and len(email) != 0 and len(password) != 0 and len(password) >= 6):
-			createUser(firstName, lastName, email, password)
-			user = auth.authenticate(username = email, password = password)
-			auth.login(request,user)
-
-			if 'avatar' in request.FILES.keys():
-				client = MongoClient()
-				db = client[settings.DATABASE_NAME]
-
-				avatar = request.FILES['avatar']
-
-				updateUserAvatar(avatar, db, email)
-			return HttpResponseRedirect('/admin')
-		elif(len(firstName) == 0):
-			message = "First Name cannot be empty !"
-		elif(len(email) == 0):
-			message = "Email ID cannot be empty !"
-		elif(len(password) == 0):
-			message = "Password cannot be empty !"
-		elif(len(password) < 6):
-			message = "Password cannot be less than 6 characters !"
-
-		return render(request, 'user-register.html', {"message": message})
-
 def emailIsUnique(email):
 	db = createMongoConnection()
 	user_collection = db.auth_user
@@ -137,41 +93,62 @@ def passwordIsValid(password):
 		return False
 	return True
 
+def registerUserHelper(request):
+	firstName = request.POST.get('firstName')
+	lastName = request.POST.get('lastName')
+	email = request.POST.get('email')
+	password = request.POST.get('password')
+	if (emailIsUnique(email)):
+		if (firstNameIsValid(firstName)):
+			if (passwordIsValid(password)):
+				createUser(firstName, lastName, email, password)
+				encoded = base64.b64encode(email, "utf-8")
+				encoded = encoded.decode("utf-8")
+				accountVerificationLink = settings.DOMAIN_NAME + "/verify-user-account?user=" + encoded
+				sendMail(email, settings.SENDGRID_SENDFROM, "Account Verification Request || Decora Systems", accountVerificationLink)
+				message = "Account creation successfull !"
+				status = 0
+			else:
+				message = "Password is less than 6 characters in length !"
+				status = 1
+		else:
+			message = "First Name cannot be empty !"
+			status = 2
+	else:
+		message = "This email already exists !"
+		status = 3
+	return {
+		"message": message,
+		"status": status
+	}	
+
+def register(request):
+	if (request.method == "GET"):
+		context = RequestContext(request, {'request': request, 'user': request.user})
+		
+		return render_to_response("user-register.html", context_instance=context)
+	elif (request.method == "POST"):
+		responseObject = registerUserHelper(request)
+		if (responseObject.status == 0):
+			if 'avatar' in request.FILES.keys():
+				client = MongoClient()
+				db = client[settings.DATABASE_NAME]
+
+				avatar = request.FILES['avatar']
+
+				updateUserAvatar(avatar, db, email)
+			return HttpResponseRedirect('/admin')
+
+		return render(request, 'user-register.html', {"message": message})
+
 @csrf_exempt
 def signupAPI(request):
 	if (request.method == "GET"):
 		return HttpResponseForbidden()
 	else:
-		firstName = request.POST.get('firstName')
-		lastName = request.POST.get('lastName')
-		email = request.POST.get('email')
-		password = request.POST.get('password')
-		if (emailIsUnique(email)):
-			if (firstNameIsValid(firstName)):
-				if (passwordIsValid(password)):
-					createUser(firstName, lastName, email, password)
-					encoded = base64.b64encode(email, "utf-8")
-					encoded = encoded.decode("utf-8")
-					accountVerificationLink = settings.DOMAIN_NAME + "/verify-user-account?user=" + encoded
-					sendMail(email, settings.SENDGRID_SENDFROM, "Account Verification Request || Decora Systems", accountVerificationLink)
-					message = "Account creation successfull !"
-					status = 0
-				else:
-					message = "Password is less than 6 characters in length !"
-					status = 1
-			else:
-				message = "First Name cannot be empty !"
-				status = 2
-		else:
-			message = "This email already exists !"
-			status = 3
-
+		responseObject = registerUserHelper(request)
 		return HttpResponse(
-			json.dumps(
-				{
-					"status": status,
-					 "message": message
-				}), content_type="application/json")
+			json.dumps(responseObject), content_type="application/json")
 
 @csrf_exempt
 def loginAPI(request):
@@ -295,10 +272,3 @@ def resetPassword(request):
 				else:
 					message = "Password length is less than 6 characters !"
 					return render(request, "user-reset-password.html?user=" + userId, {"message": message})
-
-def home(request):
-   context = RequestContext(request,
-                           {'request': request,
-                            'user': request.user})
-   return render_to_response('home.html',
-                             context_instance=context)
