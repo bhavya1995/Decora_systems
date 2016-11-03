@@ -17,10 +17,12 @@ from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.conf import settings
 
-from decora.views import home, logout, register, forgotPassword, resetPassword, signupAPI, verifyUserAccount, loginAPI
+from decora.views import home, logout, register, forgotPassword, resetPassword, signupAPI, verifyUserAccount, loginAPI, fileUploadAPI, addAssetAPI
 
 urlpatterns = [
 	# url(r'^admin/', include(admin.site.urls)),
+	url('', include('social.apps.django_app.urls', namespace='social')),
+	url('', include('django.contrib.auth.urls', namespace='auth')),
 	url(r'^admin/', include('admin_panel.urls')),
 	url(r'^$', home),
 	url(r'^logout$', logout),
@@ -30,7 +32,7 @@ urlpatterns = [
 	url(r'^signup-api$', signupAPI),
 	url(r'^verify-user-account$', verifyUserAccount),
 	url(r'^login-api$', loginAPI),
-	url('', include('social.apps.django_app.urls', namespace='social')),
-	url('', include('django.contrib.auth.urls', namespace='auth')),
+	url(r'^fileUpload-api$', fileUploadAPI),
+	url(r'^addAsset-api$', addAssetAPI),
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
 

@@ -3,6 +3,7 @@ import json
 import gridfs
 import base64
 import sendgrid
+import tempfile
 
 from sendgrid.helpers.mail import *
 
@@ -25,10 +26,10 @@ from bson.objectid import ObjectId
 
 from admin_panel.utility_constants import SUCCESSFUL_LOGIN_MESSAGE, UNAUTHORIZED_LOGIN_MESSAGE, AUTHENTICATION_ERROR_MESSAGE
 
-
-
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
+
+from admin_panel.views import generate16DigitRandomNumber, createAzureBlobService, writeFileToAzureFromRequest
 # Create your views here.
 
 def home(request):
@@ -272,3 +273,84 @@ def resetPassword(request):
 				else:
 					message = "Password length is less than 6 characters !"
 					return render(request, "user-reset-password.html?user=" + userId, {"message": message})
+
+@csrf_exempt
+def fileUploadAPI(request):
+	if request.method == "POST":
+		uploadedFile = request.FILES['file']
+		print(type(uploadedFile))
+		block_blob_service = createAzureBlobService()
+		tempFile = tempfile.TemporaryFile()
+		isUnique = False
+		counter = 0
+		while (counter < 15):
+			try:
+				fileName = uploadedFile.name + str(generate16DigitRandomNumber())
+				block_blob_service.get_blob_to_stream(settings.AZURE_CONTAINER_NAME, fileName, tempFile)
+			except Exception, e:
+				writeFileToAzureFromRequest(uploadedFile, fileName)
+				isUnique = True
+				break
+				print(e)
+			counter += 1
+		if (not isUnique):
+			message = "There is some error, please try again later !"
+			return HttpResponse(json.dumps({
+					"message": message,
+					"status": 0
+				}), content_type = "application/json")
+		else:
+			return HttpResponse(json.dumps({
+					"FileName": fileName, 
+					"status": 1
+				}), content_type = "application/json")
+	else:
+		raise Http404
+
+def checkHasAssetName(assetName):
+	if (len(assetName) == 0):
+		return False
+	return True
+
+def checkHasAssetType(assetType):
+	if (len(assetType) == 0):
+		return False
+	return True
+
+def checkHasFileUploaded(fileName):
+	block_blob_service = createAzureBlobService()
+	tempFile = tempfile.TemporaryFile()
+	try:
+		block_blob_service.get_blob_to_stream(settings.AZURE_CONTAINER_NAME, fileName, tempFile)
+	except Exception, e:
+		print(e)
+		return False
+	return True
+
+@csrf_exempt
+def addAssetAPI(request):
+	if request.method == "POST":
+		assetName = request.POST.get("AssetName")
+		assetType = request.POST.get("AssetType")
+		fileName = request.POST.get("FileName")
+
+		if checkHasAssetName(assetName):
+			if checkHasAssetType(assetType):
+				if checkHasFileUploaded(fileName):
+					db = createMongoConnection()
+					assetCollection = db.assets
+					assetId = assetCollection.insert({
+						"assetName": assetName,
+						"assetType": assetType,
+						"fileName": fileName
+					})
+					message = "Success"
+				else:
+					message = "There is no file with this file name !"
+			else:
+				message = "Asset type cannot be empty !"
+		else:
+			message = "Asset name cannot be empty !"
+		return HttpResponse(json.dumps({"message": message}), content_type="application/json")
+	else:
+		raise Http404

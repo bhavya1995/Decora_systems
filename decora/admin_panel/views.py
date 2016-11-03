@@ -91,7 +91,7 @@ def getImageFromBlobAndPopulateInObjectData(objectData):
 		o["id"] = o["_id"]
 		try:
 			tempFile = tempfile.TemporaryFile()
-			block_blob_service.get_blob_to_stream('stageds', o['thumbnail'], tempFile)
+			block_blob_service.get_blob_to_stream(settings.AZURE_CONTAINER_NAME, o['thumbnail'], tempFile)
 			tempFile.seek(0)
 			o["image_data"] = tempFile.read().encode("base64")
 			tempFile.close()
